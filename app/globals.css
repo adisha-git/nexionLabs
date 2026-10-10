@@ -1,26 +1,246 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+ * Brand tokens
+ * ------------------------------------------------------------------------ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-lilac: #f8f8f9; /* White Lilac: primary background */
+  --color-ink: #111439; /* Dark Blue: primary text, dark sections */
+  --color-ink-soft: #3d4166; /* Secondary text on light backgrounds (AA on lilac) */
+  --color-ink-muted: #5b5f80; /* Muted text (AA on white/lilac) */
+
+  --grad-indigo: #635bff;
+  --grad-violet: #a960ee;
+  --grad-red: #ff333d;
+  --grad-amber: #ffcb57;
+  --grad-sky: #90e0ff;
+
+  --header-h: 4.5rem;
+  /* Promo bar above the header; 0 when inactive or dismissed. */
+  --banner-h: 0px;
+  /* Everything fixed at the top: offset page content by this. */
+  --top-h: calc(var(--header-h) + var(--banner-h));
+}
+
+:root:has(.promo-banner):not([data-promo-dismissed]) {
+  --banner-h: 2.5rem;
+}
+[data-promo-dismissed] .promo-banner {
+  display: none;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-lilac: var(--color-lilac);
+  --color-ink: var(--color-ink);
+  --color-ink-soft: var(--color-ink-soft);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-brand: var(--grad-indigo);
+  --color-brand-dark: #4b44e6;
+  --color-violet: var(--grad-violet);
+  --color-coral: var(--grad-red);
+  --color-amber: var(--grad-amber);
+  --color-sky: var(--grad-sky);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-soft: 0 1px 2px rgb(17 20 57 / 0.04), 0 8px 24px -8px rgb(17 20 57 / 0.1);
+  --shadow-lift:
+    0 2px 4px rgb(17 20 57 / 0.04), 0 30px 60px -12px rgb(50 50 93 / 0.25),
+    0 18px 36px -18px rgb(0 0 0 / 0.3);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--top-h) + 1rem);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-lilac);
+  color: var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Scroll-reveal starting state (animated in by <Reveal> via Motion). */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal=""] {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+/* Visible, consistent focus ring for keyboard users. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--grad-indigo);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Mesh gradient (Stripe-style). Pure CSS: soft radial "blobs" drift via
+ * transform-only animations, which run on the compositor and never trigger
+ * layout. The MeshGradient component pauses it off-screen; reduced motion
+ * leaves the static gradient in place.
+ * ------------------------------------------------------------------------ */
+.mesh {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 80% at 0% 55%, var(--grad-amber) 0%, transparent 60%),
+    radial-gradient(55% 70% at 15% 95%, var(--grad-sky) 0%, transparent 65%),
+    radial-gradient(60% 70% at 55% 0%, var(--grad-violet) 0%, transparent 70%),
+    radial-gradient(50% 60% at 95% 10%, var(--grad-indigo) 0%, transparent 70%),
+    linear-gradient(115deg, #ffb36b 0%, #ef5ac3 35%, #a960ee 60%, #7a73ff 100%);
+}
+
+.mesh__blob {
+  position: absolute;
+  width: 70%;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  will-change: transform;
+  animation: mesh-drift 18s ease-in-out infinite alternate;
+}
+
+.mesh__blob--1 {
+  left: -20%;
+  top: 10%;
+  background: radial-gradient(circle, var(--grad-amber) 0%, rgb(255 203 87 / 0) 65%);
+}
+.mesh__blob--2 {
+  left: 25%;
+  top: -45%;
+  background: radial-gradient(circle, var(--grad-red) 0%, rgb(255 51 61 / 0) 60%);
+  opacity: 0.75;
+  animation-duration: 22s;
+  animation-delay: -6s;
+}
+.mesh__blob--3 {
+  right: -25%;
+  top: -30%;
+  background: radial-gradient(circle, var(--grad-indigo) 0%, rgb(99 91 255 / 0) 65%);
+  animation-duration: 20s;
+  animation-delay: -3s;
+}
+.mesh__blob--4 {
+  left: -10%;
+  bottom: -55%;
+  background: radial-gradient(circle, var(--grad-sky) 0%, rgb(144 224 255 / 0) 62%);
+  animation-duration: 24s;
+  animation-delay: -10s;
+}
+.mesh__blob--5 {
+  left: 35%;
+  top: 10%;
+  background: radial-gradient(circle, var(--grad-violet) 0%, rgb(169 96 238 / 0) 60%);
+  opacity: 0.85;
+  animation-duration: 26s;
+  animation-delay: -14s;
+}
+
+@keyframes mesh-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(12%, 8%, 0) scale(1.1);
+  }
+  66% {
+    transform: translate3d(-6%, 14%, 0) scale(0.95);
+  }
+  100% {
+    transform: translate3d(8%, -10%, 0) scale(1.05);
+  }
+}
+
+.mesh[data-paused="true"] .mesh__blob {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mesh__blob {
+    animation: none;
+  }
+}
+
+/* Stripe's angled bottom edge. */
+.hero-skew {
+  clip-path: polygon(0 0, 100% 0, 100% 78%, 0 100%);
+}
+@media (min-width: 1024px) {
+  .hero-skew {
+    clip-path: polygon(0 0, 100% 0, 100% 40%, 0 58%);
+  }
+}
+
+/* Section divider with the same angle, for dark bands. */
+.skew-top {
+  clip-path: polygon(0 6vw, 100% 0, 100% 100%, 0 100%);
+}
+
+/* Gradient text accent used sparingly in headings. */
+.text-gradient {
+  background: linear-gradient(90deg, #4b44e6, #a03ce0 50%, #e0245e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Hero mockup entrance (decorative element only; never delays the LCP text). */
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Soft colour washes for light sections. Pastel echoes of the hero mesh so
+ * the page keeps its colour below the fold without competing with content.
+ * Place inside a `relative isolate` section.
+ * ------------------------------------------------------------------------ */
+.wash {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.wash--warm {
+  background:
+    radial-gradient(45% 55% at 0% 0%, rgb(255 203 87 / 0.3), transparent 70%),
+    radial-gradient(40% 50% at 100% 15%, rgb(169 96 238 / 0.2), transparent 70%),
+    radial-gradient(35% 45% at 80% 100%, rgb(255 51 61 / 0.1), transparent 70%);
+}
+.wash--cool {
+  background:
+    radial-gradient(50% 55% at 100% 0%, rgb(144 224 255 / 0.4), transparent 70%),
+    radial-gradient(45% 55% at 0% 100%, rgb(99 91 255 / 0.16), transparent 70%);
+}
+.wash--glow {
+  background:
+    radial-gradient(45% 40% at 50% 60%, rgb(169 96 238 / 0.2), transparent 70%),
+    radial-gradient(35% 35% at 15% 35%, rgb(255 203 87 / 0.28), transparent 70%),
+    radial-gradient(35% 35% at 85% 75%, rgb(144 224 255 / 0.4), transparent 70%);
+}
+
+/* Angled top and bottom edges for a full-bleed mesh band. */
+.skew-both {
+  clip-path: polygon(0 6vw, 100% 0, 100% calc(100% - 6vw), 0 100%);
 }
